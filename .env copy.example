@@ -1,0 +1,14 @@
+# 🔑 Configurações de API (renomeie para .env)
+
+# OpenAI
+OPENAI_API_KEY=sk-...
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Google
+GOOGLE_API_KEY=...
+
+# Configurações gerais
+DEBUG=true
+LOG_LEVEL=INFO

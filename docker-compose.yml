@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  router-llm:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+    command: python main.py
