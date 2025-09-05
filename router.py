@@ -182,31 +182,83 @@ class LLMRouter:
 
     async def _call_anthropic(self, model: str, message: str, max_tokens: int, temperature: float) -> Tuple[str, int]:
         """
-        🧠 Chama a API da Anthropic (Claude) - Simulação por enquanto
+        🧠 Chama a API da Anthropic (Claude)
         """
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key or api_key == "sk-ant-...":
             raise ValueError("Chave da Anthropic não configurada")
             
-        # Por enquanto, simulação - implementar quando tiver a chave
-        await asyncio.sleep(1.0)
-        response_text = f"[SIMULAÇÃO CLAUDE] {model}: {message[:100]}..."
-        tokens_used = len(message.split()) * 2
+        headers = {
+            "x-api-key": api_key,
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01"
+        }
+        
+        # Mapear modelo para nome da API
+        api_model = "claude-3-haiku-20240307" if model == "claude-3-haiku" else "claude-3-5-sonnet-20241022"
+        
+        payload = {
+            "model": api_model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": [{"role": "user", "content": message}]
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers=headers,
+                json=payload
+            )
+            
+        if response.status_code != 200:
+            raise Exception(f"Anthropic API erro {response.status_code}: {response.text}")
+            
+        data = response.json()
+        response_text = data["content"][0]["text"]
+        tokens_used = data["usage"]["input_tokens"] + data["usage"]["output_tokens"]
         
         return response_text, tokens_used
 
     async def _call_google(self, model: str, message: str, max_tokens: int, temperature: float) -> Tuple[str, int]:
         """
-        🌟 Chama a API do Google (Gemini) - Simulação por enquanto
+        🌟 Chama a API do Google (Gemini)
         """
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key or api_key == "...":
             raise ValueError("Chave do Google não configurada")
             
-        # Por enquanto, simulação - implementar quando tiver a chave
-        await asyncio.sleep(1.0)
-        response_text = f"[SIMULAÇÃO GEMINI] {model}: {message[:100]}..."
-        tokens_used = len(message.split()) * 2
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        # Mapear modelo para nome da API
+        api_model = "gemini-1.5-pro"
+        
+        payload = {
+            "contents": [{
+                "parts": [{"text": message}]
+            }],
+            "generationConfig": {
+                "maxOutputTokens": max_tokens,
+                "temperature": temperature
+            }
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{api_model}:generateContent?key={api_key}",
+                headers=headers,
+                json=payload
+            )
+            
+        if response.status_code != 200:
+            raise Exception(f"Google API erro {response.status_code}: {response.text}")
+            
+        data = response.json()
+        response_text = data["candidates"][0]["content"]["parts"][0]["text"]
+        # Estimativa de tokens (Google não retorna contagem exata)
+        tokens_used = len(message.split()) + len(response_text.split())
         
         return response_text, tokens_used
 

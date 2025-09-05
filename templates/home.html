@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouterLLM - Chat Inteligente</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .home-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chat-title h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .chat-title .subtitle {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .model-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f7fafc;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .model-indicator .model-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .model-icon.openai { background: #10a37f; }
+        .model-icon.anthropic { background: #d97706; }
+        .model-icon.google { background: #4285f4; }
+
+        .config-btn {
+            padding: 0.75rem;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 50%;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+        }
+
+        .config-btn:hover {
+            background: #cbd5e0;
+            transform: rotate(90deg);
+        }
+
+        .theme-toggle {
+            padding: 0.75rem;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 50%;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+        }
+
+        .theme-toggle:hover {
+            background: #cbd5e0;
+            transform: scale(1.05);
+        }
+
+        .theme-toggle i {
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 60vh;
+            min-height: 400px;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #10a37f, #1a7f64);
+        }
+
+        .message-content {
+            flex: 1;
+            max-width: 70%;
+        }
+
+        .message.user .message-content {
+            text-align: right;
+        }
+
+        .message-bubble {
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.assistant .message-bubble {
+            background: #f7fafc;
+            color: #2d3748;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-meta {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .message.user .message-meta {
+            justify-content: flex-end;
+        }
+
+        .model-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #718096;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .chat-input-container {
+            padding: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            background: #f7fafc;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            min-height: 50px;
+            max-height: 120px;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-action {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .quick-action:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 2rem;
+            padding: 1rem;
+            background: #f7fafc;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #718096;
+            padding: 3rem;
+        }
+
+        .welcome-message h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-message p {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --bg-tertiary: #4a5568;
+            --text-primary: #f7fafc;
+            --text-secondary: #e2e8f0;
+            --text-muted: #a0aec0;
+            --border-color: #4a5568;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        }
+
+        [data-theme="dark"] .chat-header,
+        [data-theme="dark"] .chat-container {
+            background: rgba(45, 55, 72, 0.95);
+            border-color: rgba(74, 85, 104, 0.2);
+        }
+
+        [data-theme="dark"] .chat-title h1 {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .chat-title .subtitle {
+            color: var(--text-muted);
+        }
+
+        [data-theme="dark"] .model-indicator {
+            background: var(--bg-tertiary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .theme-toggle,
+        [data-theme="dark"] .config-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .theme-toggle:hover,
+        [data-theme="dark"] .config-btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        [data-theme="dark"] .quick-action {
+            background: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .quick-action:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        [data-theme="dark"] .message.assistant .message-bubble {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .message-meta {
+            color: var(--text-muted);
+        }
+
+        [data-theme="dark"] .model-badge {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .chat-input-container {
+            background: var(--bg-secondary);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .chat-input {
+            background: var(--bg-tertiary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        [data-theme="dark"] .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        [data-theme="dark"] .stats-bar {
+            background: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-muted);
+        }
+
+        [data-theme="dark"] .welcome-message h3 {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .welcome-message p {
+            color: var(--text-muted);
+        }
+
+        [data-theme="dark"] .typing-indicator {
+            color: var(--text-muted);
+        }
+
+        [data-theme="dark"] .typing-dot {
+            background: var(--text-muted);
+        }
+
+        @media (max-width: 768px) {
+            .home-container {
+                padding: 1rem;
+            }
+            
+            .chat-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .chat-input-wrapper {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .send-btn {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="home-container">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="chat-title">
+                    <div>
+                        <h1><i class="fas fa-robot"></i> RouterLLM Chat</h1>
+                        <div class="subtitle">Roteamento inteligente de modelos LLM</div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="model-indicator" id="currentModel">
+                        <div class="model-icon" id="modelIcon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <span id="modelName">Carregando...</span>
+                    </div>
+                    
+                    <!-- Theme Toggle -->
+                    <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+                        <i class="fas fa-sun" id="themeIcon"></i>
+                    </button>
+                    
+                    <a href="/api-config" class="config-btn" title="Configurar APIs">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <div class="quick-action" onclick="sendQuickMessage('Olá, como você está?')">
+                        <i class="fas fa-hand-wave"></i> Cumprimentar
+                    </div>
+                    <div class="quick-action" onclick="sendQuickMessage('Escreva um poema sobre tecnologia')">
+                        <i class="fas fa-pen-fancy"></i> Poema
+                    </div>
+                    <div class="quick-action" onclick="sendQuickMessage('Como fazer um loop em Python?')">
+                        <i class="fas fa-code"></i> Programação
+                    </div>
+                    <div class="quick-action" onclick="sendQuickMessage('Explique inteligência artificial')">
+                        <i class="fas fa-brain"></i> IA
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-message">
+                        <h3><i class="fas fa-sparkles"></i> Bem-vindo ao RouterLLM!</h3>
+                        <p>Este é um roteador inteligente que escolhe o melhor modelo LLM para sua pergunta.</p>
+                        <p>Digite uma mensagem abaixo ou use as ações rápidas para começar.</p>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div class="typing-indicator" id="typingIndicator">
+                    <i class="fas fa-robot"></i>
+                    <span>Pensando</span>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+
+                <!-- Input -->
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            id="chatInput" 
+                            class="chat-input" 
+                            placeholder="Digite sua mensagem aqui... (Ctrl+Enter para enviar)"
+                            rows="1"
+                        ></textarea>
+                        <button id="sendBtn" class="send-btn" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Bar -->
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <i class="fas fa-message"></i>
+                        <span id="messageCount">0 mensagens</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span id="totalCost">$0.00</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-clock"></i>
+                        <span id="avgTime">0s</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span id="tokensUsed">0 tokens</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/home.js"></script>
+</body>
+</html>

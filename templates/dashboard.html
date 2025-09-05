@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouterLLM Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-route"></i> RouterLLM Dashboard</h1>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <a href="/api-config" class="btn btn-secondary" style="text-decoration: none; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        <i class="fas fa-cog"></i> Configurar APIs
+                    </a>
+                    <div class="status-indicator">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">Conectando...</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stats Cards -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalRequests">0</h3>
+                        <p>Total de Requests</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalCost">$0.00</h3>
+                        <p>Custo Total</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="avgResponseTime">0ms</h3>
+                        <p>Tempo Médio</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="activeModels">0</h3>
+                        <p>Modelos Ativos</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-pie"></i> Uso por Modelo</h3>
+                    <canvas id="modelUsageChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-line"></i> Custo por Hora</h3>
+                    <canvas id="costChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Models Status -->
+            <section class="models-section">
+                <h3><i class="fas fa-robot"></i> Status dos Modelos</h3>
+                <div class="models-grid" id="modelsGrid">
+                    <!-- Modelos serão carregados via JavaScript -->
+                </div>
+            </section>
+
+            <!-- Recent Activity -->
+            <section class="activity-section">
+                <h3><i class="fas fa-history"></i> Atividade Recente</h3>
+                <div class="activity-list" id="activityList">
+                    <!-- Atividades serão carregadas via JavaScript -->
+                </div>
+            </section>
+
+            <!-- Test Interface -->
+            <section class="test-section">
+                <h3><i class="fas fa-flask"></i> Teste da API</h3>
+                <div class="test-form">
+                    <textarea id="testMessage" placeholder="Digite sua mensagem para testar o roteamento..."></textarea>
+                    <div class="test-controls">
+                        <select id="forceModel">
+                            <option value="">Auto (Roteamento Inteligente)</option>
+                            <option value="gpt-4o-mini">GPT-4o Mini</option>
+                            <option value="gpt-4">GPT-4</option>
+                            <option value="claude-3-haiku">Claude 3 Haiku</option>
+                            <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+                            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                        </select>
+                        <button id="testButton" onclick="testAPI()">
+                            <i class="fas fa-paper-plane"></i> Testar
+                        </button>
+                    </div>
+                </div>
+                <div class="test-result" id="testResult"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

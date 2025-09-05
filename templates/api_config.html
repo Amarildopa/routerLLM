@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuração de APIs - RouterLLM</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .config-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        
+        .api-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .api-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .api-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .api-icon.openai { background: linear-gradient(135deg, #10a37f, #1a7f64); }
+        .api-icon.anthropic { background: linear-gradient(135deg, #d97706, #b45309); }
+        .api-icon.google { background: linear-gradient(135deg, #4285f4, #1a73e8); }
+        
+        .api-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .api-description {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-input:disabled {
+            background: #f7fafc;
+            color: #a0aec0;
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-indicator.connected {
+            background: #f0fff4;
+            color: #38a169;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .status-indicator.disconnected {
+            background: #fff5f5;
+            color: #e53e3e;
+            border: 1px solid #feb2b2;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #2f855a;
+        }
+        
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c53030;
+        }
+        
+        .help-text {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 0.5rem;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+        
+        .back-link:hover {
+            color: #5a67d8;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-info {
+            background: #ebf8ff;
+            color: #2b6cb0;
+            border: 1px solid #90cdf4;
+        }
+        
+        .alert-warning {
+            background: #fffbeb;
+            color: #d69e2e;
+            border: 1px solid #f6e05e;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-cog"></i> Configuração de APIs</h1>
+                <div class="status-indicator" id="overallStatus">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Verificando...</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="config-container">
+                <a href="/dashboard" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Voltar ao Dashboard
+                </a>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Importante:</strong> As chaves de API são armazenadas localmente no arquivo .env. 
+                    Certifique-se de manter suas chaves seguras e não compartilhá-las.
+                </div>
+
+                <!-- OpenAI Configuration -->
+                <div class="api-card">
+                    <div class="api-header">
+                        <div class="api-icon openai">
+                            <i class="fab fa-openai"></i>
+                        </div>
+                        <div>
+                            <h2 class="api-title">OpenAI</h2>
+                            <p class="api-description">GPT-4, GPT-4o Mini e outros modelos</p>
+                        </div>
+                        <div class="status-indicator" id="openaiStatus">
+                            <i class="fas fa-circle"></i>
+                            <span>Verificando...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="openaiKey">Chave da API OpenAI</label>
+                        <input type="password" id="openaiKey" class="form-input" placeholder="sk-proj-...">
+                        <div class="help-text">
+                            Obtenha sua chave em: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <button class="btn btn-secondary" onclick="toggleVisibility('openaiKey')">
+                            <i class="fas fa-eye"></i> Mostrar/Ocultar
+                        </button>
+                        <button class="btn btn-primary" onclick="testApiKey('openai')">
+                            <i class="fas fa-flask"></i> Testar
+                        </button>
+                        <button class="btn btn-success" onclick="saveApiKey('openai')">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Anthropic Configuration -->
+                <div class="api-card">
+                    <div class="api-header">
+                        <div class="api-icon anthropic">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div>
+                            <h2 class="api-title">Anthropic</h2>
+                            <p class="api-description">Claude 3 Haiku, Claude 3.5 Sonnet</p>
+                        </div>
+                        <div class="status-indicator" id="anthropicStatus">
+                            <i class="fas fa-circle"></i>
+                            <span>Verificando...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="anthropicKey">Chave da API Anthropic</label>
+                        <input type="password" id="anthropicKey" class="form-input" placeholder="sk-ant-...">
+                        <div class="help-text">
+                            Obtenha sua chave em: <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a>
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <button class="btn btn-secondary" onclick="toggleVisibility('anthropicKey')">
+                            <i class="fas fa-eye"></i> Mostrar/Ocultar
+                        </button>
+                        <button class="btn btn-primary" onclick="testApiKey('anthropic')">
+                            <i class="fas fa-flask"></i> Testar
+                        </button>
+                        <button class="btn btn-success" onclick="saveApiKey('anthropic')">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Google Configuration -->
+                <div class="api-card">
+                    <div class="api-header">
+                        <div class="api-icon google">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <div>
+                            <h2 class="api-title">Google</h2>
+                            <p class="api-description">Gemini 1.5 Pro e outros modelos</p>
+                        </div>
+                        <div class="status-indicator" id="googleStatus">
+                            <i class="fas fa-circle"></i>
+                            <span>Verificando...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="googleKey">Chave da API Google</label>
+                        <input type="password" id="googleKey" class="form-input" placeholder="AIza...">
+                        <div class="help-text">
+                            Obtenha sua chave em: <a href="https://makersuite.google.com/app/apikey" target="_blank">makersuite.google.com</a>
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <button class="btn btn-secondary" onclick="toggleVisibility('googleKey')">
+                            <i class="fas fa-eye"></i> Mostrar/Ocultar
+                        </button>
+                        <button class="btn btn-primary" onclick="testApiKey('google')">
+                            <i class="fas fa-flask"></i> Testar
+                        </button>
+                        <button class="btn btn-success" onclick="saveApiKey('google')">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="loadCurrentKeys()">
+                        <i class="fas fa-refresh"></i> Recarregar Status
+                    </button>
+                    <button class="btn btn-success" onclick="saveAllKeys()">
+                        <i class="fas fa-save"></i> Salvar Todas as Chaves
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/api_config.js"></script>
+</body>
+</html>

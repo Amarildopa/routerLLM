@@ -1,0 +1,22 @@
+2025-09-05 17:28:21,007 - router - ERROR - Erro ao chamar claude-3-haiku: Chave da Anthropic não configurada
+2025-09-05 17:37:55,722 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2025-09-05 17:37:55,725 - router - ERROR - Erro ao chamar gpt-4o-mini: OpenAI API erro 401: {
+    "error": {
+        "message": "Incorrect API key provided: sk-proj-********************************************************************************************************************************************************6L4A. You can find your API key at https://platform.openai.com/account/api-keys.",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": "invalid_api_key"
+    }
+}
+
+2025-09-05 17:43:01,331 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2025-09-05 17:43:01,333 - router - ERROR - Erro ao chamar gpt-4o-mini: OpenAI API erro 401: {
+    "error": {
+        "message": "Incorrect API key provided: sk-proj-********************************************************************************************************************************************************6L4A. You can find your API key at https://platform.openai.com/account/api-keys.",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": "invalid_api_key"
+    }
+}
+
+2025-09-05 18:02:50,405 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"

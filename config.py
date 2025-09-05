@@ -75,15 +75,18 @@ class RouterConfig:
         providers = []
         
         # Verifica OpenAI
-        if os.getenv('OPENAI_API_KEY'):
+        openai_key = os.getenv('OPENAI_API_KEY')
+        if openai_key and openai_key.strip() and not openai_key.startswith('sk-...'):
             providers.append('openai')
         
         # Verifica Anthropic
-        if os.getenv('ANTHROPIC_API_KEY'):
+        anthropic_key = os.getenv('ANTHROPIC_API_KEY')
+        if anthropic_key and anthropic_key.strip() and not anthropic_key.startswith('sk-ant-...'):
             providers.append('anthropic')
         
         # Verifica Google
-        if os.getenv('GOOGLE_API_KEY'):
+        google_key = os.getenv('GOOGLE_API_KEY')
+        if google_key and google_key.strip() and google_key != '...':
             providers.append('google')
         
         return providers
